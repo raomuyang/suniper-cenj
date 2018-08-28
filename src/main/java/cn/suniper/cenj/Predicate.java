@@ -48,7 +48,7 @@ public enum Predicate {
             "Order", "And", "By", "Or"
     );
 
-    private static final Map<String, Predicate> KV;
+    private static final Map<String, Predicate> ALL;
 
     Predicate(String symbol) {
         this.symbol = symbol;
@@ -58,19 +58,24 @@ public enum Predicate {
 
     static {
         allNames = new HashSet<>();
-        KV = new HashMap<>();
+        ALL = new HashMap<>();
         for (Predicate predicate : values()) {
             allNames.add(predicate.name());
-            KV.put(predicate.name().toLowerCase(), predicate);
+            ALL.put(predicate.name().toLowerCase(), predicate);
         }
     }
 
     public static Predicate get(String name) {
-        return Optional.ofNullable(name).map(n -> KV.get(n.toLowerCase())).orElse(null);
+        return Optional.ofNullable(name).map(n -> ALL.get(n.toLowerCase())).orElse(null);
     }
 
     public static boolean isPrefix(String word) {
         return prefixes.contains(word);
+    }
+
+    public static boolean contains(String word) {
+        if (word == null) return false;
+        return ALL.keySet().contains(word.toLowerCase());
     }
 
 }

@@ -24,7 +24,7 @@ public class Interpreter {
 
     public Interpreter(String methodName, String tableName) {
         this.originName = methodName;
-        this.words = Parser.splitCamelWords(originName);
+        this.words = StringUtil.splitCamelWords(originName);
         this.tableName = tableName;
 
         String verbStr = words.remove(0);
@@ -38,17 +38,52 @@ public class Interpreter {
 
     private String buildSql() {
         StringBuilder sql = new StringBuilder(buildQuery());
+
         // > 0 ; < 0; == 0;
         int indexOfWhere = sql.indexOf("WHERE");
+        if (indexOfWhere < 0) {
 
+            String target = "*";
+            if (sql.length() > 0) {
+                String first = sql.indexOf(" ") > 0 ? sql.substring(0, sql.indexOf(" ")) : sql.toString();
+                if (Predicate.contains(first)) {
+                    // normal predicate
+                    target = "*";
+                } else if (first.equals("TOP")) {
+                    // findTop10[OrderByXXX...]()
+                    int next = sql.indexOf(" ", 4);
+                    next = next == -1 ? sql.length() : next;
+                    target = sql.substring(0, next);
+                    sql.replace(0, next + 1, "");
+                } else {
+                    // findName[OrderByXXX...]()
+                    target = first;
+                    sql.replace(0, first.length() + 1, "");
+                }
+            }
+
+            buildSql(sql, indexOfWhere, target);
+
+        } else if (indexOfWhere == 0) {
+            String target = "*";
+            buildSql(sql, indexOfWhere, target);
+        } else {
+            buildSql(sql, indexOfWhere, null);
+        }
+
+        return sql.toString().toUpperCase().trim();
+
+    }
+
+    private void buildSql(StringBuilder sql, int indexOfWhere, String target) {
         String left = verb == Verb.Count ? "(" : "";
         String right = verb == Verb.Count ? ")" : "";
+        String verbName = verb.getSymbol() + (verb == Verb.Count ? "" : " ");
 
         if (indexOfWhere <= 0) {
-            StringBuilder header = new StringBuilder(verb.getSymbol());
-            if (verb != Verb.Count) header.append(" ");
+            StringBuilder header = new StringBuilder(verbName);
             header.append(left)
-                    .append("*")
+                    .append(target)
                     .append(right)
                     .append(" FROM ")
                     .append(tableName)
@@ -56,11 +91,8 @@ public class Interpreter {
             sql.insert(0, header);
         } else {
             sql.insert(indexOfWhere, right + " FROM " + tableName + " ");
-            sql.insert(0, verb.getSymbol() + " " + left);
+            sql.insert(0, verbName + left);
         }
-
-        return sql.toString().toUpperCase();
-
     }
 
     private String buildQuery() {
@@ -93,7 +125,9 @@ public class Interpreter {
             subList.add(words.subList(last + 1, words.size()));
         }
 
-        return assembleSegments(separatorIndexList, subList);
+        String query = assembleSegments(separatorIndexList, subList).trim();
+        // findAll() equivalent to find()
+        return query.equals("ALL") ? "" : query;
     }
 
     private String assembleSegments(List<Integer> separatorIndex, List<List<String>> partsList) {
@@ -116,13 +150,16 @@ public class Interpreter {
             String separatorName = words.get(separatorIndex.get(i));
             Predicate separator = Predicate.get(separatorName);
             List<String> parts = partsList.get(i);
-            query.append(separator.symbol).append(" ").append(assembleWords2Segment(parts)).append(" ");
+            query.append(separator.symbol)
+                    .append(" ")
+                    .append(assembleWords2Segment(parts, separator))
+                    .append(" ");
         }
 
         return query.toString().toUpperCase();
     }
 
-    private String assembleWords2Segment(List<String> parts) {
+    private String assembleWords2Segment(List<String> parts, Predicate seaparator) {
         StringBuilder segment = new StringBuilder();
         String predicateTmp = null;
         boolean include = false;
@@ -154,7 +191,7 @@ public class Interpreter {
             include = true;
         }
 
-        if (!include) {
+        if (!include && seaparator != Predicate.OrderBy) {
             segment.append(" ").append(Predicate.Equals.symbol);
         }
 
@@ -165,7 +202,7 @@ public class Interpreter {
         return originName;
     }
 
-    public String getSql() {
+    public String getSQL() {
         return this.sql;
     }
 

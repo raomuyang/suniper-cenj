@@ -8,7 +8,7 @@ import java.util.Optional;
  * @author Rao Mengnan
  *         on 2018/8/15.
  */
-public class Parser {
+public class StringUtil {
 
     public static List<String> splitCamelWords(String str) {
         return Optional.ofNullable(str).map(s -> {
@@ -27,6 +27,20 @@ public class Parser {
             }
             return words;
         }).orElse(null);
+    }
+
+    /**
+     * AAA to Aaa
+     * aaa to Aaa
+     *
+     * @param str
+     * @return
+     */
+    public static String word2Camel(String str) {
+        if (str == null) return null;
+        char[] array = str.toLowerCase().toCharArray();
+        array[0] -= 32;
+        return new String(array);
     }
 
 }
