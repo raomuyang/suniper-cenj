@@ -1,7 +1,6 @@
 ## SUNIPER-CENJ
 
-[![Build Status](https://travis-ci.org/suniper/suniper-cenj.svg?branch=master)](https://travis-ci.org/suniper/suniper-cenj)  
-[![Coverage Status](https://coveralls.io/repos/github/suniper/suniper-cenj/badge.svg?branch=master)](https://coveralls.io/github/suniper/suniper-cenj?branch=master)
+[![Build Status](https://travis-ci.org/suniper/suniper-cenj.svg?branch=master)](https://travis-ci.org/suniper/suniper-cenj) [![Coverage Status](https://coveralls.io/repos/github/suniper/suniper-cenj/badge.svg?branch=master)](https://coveralls.io/github/suniper/suniper-cenj?branch=master)
 
 > Crud Enhancer is Not a JPA framework.
 
