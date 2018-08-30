@@ -101,6 +101,18 @@ public class InterpreterTest {
         methodName = "findNameOrderByCreatedTs";
         except = "SELECT NAME FROM TEST ORDER BY CREATEDTS";
         assertEquals(except, new Interpreter(methodName, tableName).getSQL());
+
+        methodName = "updateNameAndValueById";
+        except = "UPDATE TEST SET NAME = ? AND VALUE = ? WHERE ID = ?";
+        assertEquals(except, new Interpreter(methodName, tableName).getSQL());
+
+        methodName = "update";
+        except = "UPDATE TEST SET {UPDATE_PARAMS}";
+        assertEquals(except, new Interpreter(methodName, tableName).getSQL());
+
+        methodName = "insert";
+        except = "INSERT INTO TEST ({INSERT_PARAMS}) VALUES ({INSERT_VALUES})";
+        assertEquals(except, new Interpreter(methodName, tableName).getSQL());
     }
 
 }

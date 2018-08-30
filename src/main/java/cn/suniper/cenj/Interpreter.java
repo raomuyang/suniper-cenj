@@ -22,10 +22,14 @@ import java.util.List;
 
 /**
  * Parse a camel-string to SQL, finally, the SQL will be upper case.
+ *
  * @author Rao Mengnan
  *         on 2018/8/24.
  */
 public class Interpreter {
+    public static final String UPDATE_PARAMS_REPLACE_HOLDER = "{update_params}";
+    public static final String INSERT_PARAMS_NAME_REPLACE_HOLDER = "{insert_params}";
+    public static final String INSERT_PARAMS_REPLACE_HOLDER = "{insert_values}";
     private String originName;
     private List<String> words;
     private Verb verb;
@@ -97,19 +101,44 @@ public class Interpreter {
         String right = verb == Verb.Count ? ")" : "";
         String verbName = verb.getSymbol() + (verb == Verb.Count ? "" : " ");
 
-        if (indexOfWhere <= 0) {
-            StringBuilder header = new StringBuilder(verbName);
-            header.append(left)
-                    .append(target)
-                    .append(right)
-                    .append(" FROM ")
-                    .append(tableName)
-                    .append(" ");
-            sql.insert(0, header);
-        } else {
-            sql.insert(indexOfWhere, right + " FROM " + tableName + " ");
-            sql.insert(0, verbName + left);
+        StringBuilder header = new StringBuilder(verbName);
+        switch (verb) {
+            case Update:
+                header.append(tableName).append(" SET ");
+                if (sql.length() == 0) header.append(UPDATE_PARAMS_REPLACE_HOLDER);
+
+                int indexOfSpace = sql.indexOf(" ");
+                if (indexOfSpace > 0) {
+                    sql.insert(indexOfSpace, " " + Predicate.Equals.symbol);
+                }
+                sql.insert(0, header);
+                break;
+            case Insert:
+                if (sql.length() > 0) {
+                    throw new IllegalArgumentException(String.format("Cannot resolve the string: %s", originName));
+                }
+                sql.append(header)
+                        .append("INTO ")
+                        .append(tableName)
+                        .append(String.format(" (%s) VALUES (%s)",
+                                INSERT_PARAMS_NAME_REPLACE_HOLDER,
+                                INSERT_PARAMS_REPLACE_HOLDER));
+                break;
+            default:
+                if (indexOfWhere <= 0) {
+                    header.append(left)
+                            .append(target)
+                            .append(right)
+                            .append(" FROM ")
+                            .append(tableName)
+                            .append(" ");
+                    sql.insert(0, header);
+                } else {
+                    sql.insert(indexOfWhere, right + "FROM " + tableName + " ");
+                    sql.insert(0, verbName + left);
+                }
         }
+
     }
 
     private String buildQuery() {
@@ -167,6 +196,7 @@ public class Interpreter {
             String separatorName = words.get(separatorIndex.get(i));
             Predicate separator = Predicate.get(separatorName);
             List<String> parts = partsList.get(i);
+            if (query.length() > 0 && query.charAt(query.length() - 1) != ' ') query.append(" ");
             query.append(separator.symbol)
                     .append(" ")
                     .append(assembleWords2Segment(parts, separator))
