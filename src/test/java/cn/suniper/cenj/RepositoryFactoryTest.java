@@ -2,6 +2,9 @@ package cn.suniper.cenj;
 
 import org.junit.Test;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -38,12 +41,32 @@ public class RepositoryFactoryTest {
         assertArrayEquals(new Object[0], executor.parameters);
     }
 
+    @Test
+    public void testStartWithNoneTableName() {
+        MockSQLExecutor executor = new MockSQLExecutor();
+        RepositoryFactory factory = new RepositoryFactory(executor);
+        SQLExpression operator = factory.getRepositoryInstance(SQLExpression.class);
+        operator.update(new FakeEntity());
+        assertEquals("UPDATE FAKEENTITY SET columnName = ? AND value = ? WHERE entityId = ?", executor.sql);
+    }
+
     interface SQLExpression {
         String deleteByFirstNameAndAge(String name, int age);
 
         void deleteAll();
 
         List<String> queryAllOrderById();
+
+        void update(FakeEntity entity);
+    }
+
+    @Entity
+    static class FakeEntity {
+        @Id
+        private String entityId;
+        @Column(name = "columnName")
+        private String name;
+        private String value;
     }
 
     static class MockSQLExecutor implements SQLExecutor {

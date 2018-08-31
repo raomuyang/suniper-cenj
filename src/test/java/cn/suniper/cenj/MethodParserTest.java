@@ -23,7 +23,7 @@ public class MethodParserTest {
             switch (m.getName()) {
                 case "update":
                     parser = new MethodParser(m);
-                    assertEquals("UPDATE TEST SET age = ? AND name = ?  WHERE studentId = ?", parser.getSQL());
+                    assertEquals("UPDATE TEST SET age = ? AND name = ? WHERE studentId = ?", parser.getSQL());
                     break;
                 case "insert":
                     parser = new MethodParser(m);

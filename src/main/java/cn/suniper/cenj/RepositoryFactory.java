@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *         on 2018/8/15.
  */
 public class RepositoryFactory implements MethodInterceptor {
-    private static final Map<String, String> cachedSqlMap = new ConcurrentHashMap<>();
+    private static final Map<String, MethodParser> cachedSqlMap = new ConcurrentHashMap<>();
 
     private SQLExecutor executor;
     private String tableName;
@@ -41,17 +41,35 @@ public class RepositoryFactory implements MethodInterceptor {
         this.tableName = tableName;
     }
 
+    public RepositoryFactory(SQLExecutor executor) {
+        this.executor = executor;
+    }
+
     public <T> T getRepositoryInstance(Class<?> clazz) {
         return getRepositoryInstance(clazz, this);
     }
 
     @Override
     public Object intercept(Object o, Method method, Object[] parameters, MethodProxy methodProxy) throws Throwable {
-        String key = tableName + "/" + method.getName();
-        String sql = cachedSqlMap.computeIfAbsent(key, k -> new Interpreter(method.getName(), tableName).getSQL());
+
+        String key = getMethodKey(method);
+        MethodParser parser = cachedSqlMap.computeIfAbsent(key, k -> new MethodParser(method, tableName));
+
         Class<?>[] parameterTypes = method.getParameterTypes();
         Class<?> returnType = method.getReturnType();
-        return executor.execute(returnType, sql, parameters, parameterTypes);
+
+        return executor.execute(returnType, parser.getSQL(), parameters, parameterTypes);
+    }
+
+    private String getMethodKey(Method method) {
+        StringBuilder key = new StringBuilder()
+                .append(tableName)
+                .append("/")
+                .append(method.getName())
+                .append("_")
+                .append(method.getParameterTypes().length);
+        for (Class<?> p : method.getParameterTypes()) key.append("_").append(p.getTypeName());
+        return key.toString();
     }
 
     @SuppressWarnings("unchecked")
@@ -61,5 +79,4 @@ public class RepositoryFactory implements MethodInterceptor {
         enhancer.setCallback(interceptor);
         return (T) enhancer.create();
     }
-
 }

@@ -61,7 +61,8 @@ public class MethodParser {
                 tableName = table.name();
             } else {
                 Entity entityDefine = klass.getAnnotation(Entity.class);
-                if (entityDefine != null) tableName = entityDefine.name();
+                if (entityDefine != null)
+                    tableName = entityDefine.name().length() > 0 ? entityDefine.name() : klass.getSimpleName();
             }
         }
         if (tableName == null) {
@@ -96,7 +97,9 @@ public class MethodParser {
                     if (id != null) {
                         switch (interpreter.getVerb()) {
                             case Update:
-                                suffix.append(" WHERE ").append(id).append(" ").append(Predicate.Equals.symbol).append(" ");
+                                if (suffix.length() > 0 && suffix.charAt(suffix.length() - 1) != ' ')
+                                    suffix.append(" ");
+                                suffix.append("WHERE ").append(id).append(" ").append(Predicate.Equals.symbol).append(" ");
                                 break;
                             default:
                                 appendQuery(suffix, id);
