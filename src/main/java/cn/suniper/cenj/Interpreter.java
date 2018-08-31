@@ -27,14 +27,15 @@ import java.util.List;
  *         on 2018/8/24.
  */
 public class Interpreter {
-    public static final String UPDATE_PARAMS_REPLACE_HOLDER = "{update_params}";
-    public static final String INSERT_PARAMS_NAME_REPLACE_HOLDER = "{insert_params}";
-    public static final String INSERT_PARAMS_REPLACE_HOLDER = "{insert_values}";
+    public static final String UPDATE_PARAMS_REPLACE_HOLDER = "{UPDATE_PARAMS}";
+    public static final String INSERT_PARAMS_NAME_REPLACE_HOLDER = "{INSERT_PARAMS}";
+    public static final String INSERT_PARAMS_REPLACE_HOLDER = "{INSERT_VALUES}";
     private String originName;
     private List<String> words;
     private Verb verb;
     private String tableName;
     private String sql;
+    private boolean noneArgs;
 
     private static final List<Predicate> separatorList = Arrays.asList(
             Predicate.By,
@@ -59,6 +60,7 @@ public class Interpreter {
 
     private String buildSql() {
         StringBuilder sql = new StringBuilder(buildQuery());
+        noneArgs = sql.length() == 0;
 
         // > 0 ; < 0; == 0;
         int indexOfWhere = sql.indexOf("WHERE");
@@ -253,9 +255,17 @@ public class Interpreter {
         return this.sql;
     }
 
+    public boolean isNoneArgs() {
+        return noneArgs;
+    }
+
     @Override
     public String toString() {
         return "Origin: " + originName + "\n"
                 + "SQL: " + sql;
+    }
+
+    public Verb getVerb() {
+        return verb;
     }
 }
