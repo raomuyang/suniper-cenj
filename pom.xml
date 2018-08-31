@@ -6,7 +6,7 @@
 
     <groupId>cn.suniper.cenj</groupId>
     <artifactId>suniper-cenj</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 
     <name>Suniper CENJ</name>
     <description>
@@ -29,7 +29,7 @@
         <url>https://github.com/suniper/suniper-cenj.git</url>
         <connection>scm:git:git://github.com/suniper/suniper-cenj.git</connection>
         <developerConnection>scm:git:git@github.com:suniper/suniper-cenj.git</developerConnection>
-        <tag>suniper-cenj-0.1.0</tag>
+        <tag>suniper-cenj</tag>
     </scm>
 
     <properties>
