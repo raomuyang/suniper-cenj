@@ -83,7 +83,7 @@ public class MethodParser {
                     String id = null;
                     for (Field field : fields) {
                         // inner class
-                        if (field.getName().startsWith("this$")) continue;
+                        if (field.getName().startsWith("this$") || field.getName().startsWith("$")) continue;
                         realParamsCount += 1;
                         Column column = field.getAnnotation(Column.class);
                         String columnName = column == null ? field.getName() : column.name();
